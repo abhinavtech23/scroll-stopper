@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.FeedShield" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/shield_background</item>
+        <item name="android:navigationBarColor">@color/shield_background</item>
+    </style>
+</resources>

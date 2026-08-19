@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">FeedShield</string>
+    <string name="accessibility_service_label">FeedShield Short-Video Blocker</string>
+    <string name="accessibility_service_description">FeedShield detects short-form video UI layouts (Instagram Reels &amp; YouTube Shorts) to prevent doom-scrolling while keeping your standard feeds and direct messages accessible.</string>
+    
+    <!-- Onboarding & Disclosure -->
+    <string name="onboarding_title">Reclaim Your Focus</string>
+    <string name="onboarding_subtitle">Intercept addictive short-form video algorithms without giving up social messaging or normal feeds.</string>
+    <string name="privacy_disclosure_title">Privacy &amp; Accessibility Disclosure</string>
+    <string name="privacy_disclosure_body">FeedShield uses Accessibility APIs strictly to detect short-video UI layouts on Instagram and YouTube. No personal data, messages, or text inputs are recorded, stored, or transmitted.</string>
+    <string name="how_it_works_title">How FeedShield Operates</string>
+    <string name="how_it_works_1">Targeted UI inspection: Recognizes Reels and Shorts view containers in real-time.</string>
+    <string name="how_it_works_2">Zero-Cloud Guarantee: 100% on-device processing. No network tracking.</string>
+    <string name="how_it_works_3">Feed &amp; Chat Intact: Standard posts, stories, searches, and DMs remain completely usable.</string>
+    <string name="btn_enable_service">Enable in Accessibility Settings</string>
+    <string name="btn_service_active">Shield Active &amp; Protecting</string>
+    <string name="status_enabled">Service Enabled &amp; Running</string>
+    <string name="status_disabled">Service Disabled - Setup Required</string>
+</resources>
