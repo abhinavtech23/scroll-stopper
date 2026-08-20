@@ -4,18 +4,21 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.feedshield.android.core.accessibility.NodeInspector
 import com.feedshield.android.core.util.Logger
+import com.feedshield.android.data.repository.SettingsRepository
 
 /**
  * Detector targeting YouTube Shorts player and container views.
- * Distinguishes Shorts immersive scrolls from standard landscape/portrait video playback and search.
+ * Immediately intercepts YouTube Shorts while keeping regular video playback, search, and home feed usable.
  */
-class YouTubeShortsDetector : ShortVideoDetector {
+class YouTubeShortsDetector(
+    private val settingsRepository: SettingsRepository
+) : ShortVideoDetector {
 
     override val targetPackage: String = YOUTUBE_PACKAGE
 
     companion object {
         const val YOUTUBE_PACKAGE = "com.google.android.youtube"
-        private const val TAG = "FeedShield.YouTube"
+        private const val TAG = "ScrollStopper.YouTube"
 
         // Known View IDs and tag signatures for YouTube Shorts containers
         private val SHORTS_CONTAINER_VIEW_IDS = setOf(
@@ -30,6 +33,10 @@ class YouTubeShortsDetector : ShortVideoDetector {
     }
 
     override fun detect(rootNode: AccessibilityNodeInfo?, event: AccessibilityEvent): DetectionResult? {
+        if (!settingsRepository.isYouTubeBlocked) {
+            return null
+        }
+
         if (rootNode == null) return null
 
         try {
@@ -41,6 +48,7 @@ class YouTubeShortsDetector : ShortVideoDetector {
                     targetPackage = targetPackage,
                     featureType = "YouTube Shorts",
                     matchedContainerId = sourceId,
+                    reason = InterceptionReason.YOUTUBE_SHORTS,
                     confidence = 1.0f
                 )
             }
@@ -58,6 +66,7 @@ class YouTubeShortsDetector : ShortVideoDetector {
                     targetPackage = targetPackage,
                     featureType = "YouTube Shorts",
                     matchedContainerId = matchedId,
+                    reason = InterceptionReason.YOUTUBE_SHORTS,
                     confidence = 0.95f
                 )
             }

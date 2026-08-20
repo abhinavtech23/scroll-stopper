@@ -1,0 +1,44 @@
+com.feedshield.android.app-activity-1.8.2-0 C:\Users\dell\.gradle\caches\8.13\transforms\00f0da091012c25f2fe529c57ecc3790\transformed\activity-1.8.2\res
+com.feedshield.android.app-lifecycle-viewmodel-ktx-2.7.0-1 C:\Users\dell\.gradle\caches\8.13\transforms\041d1fe6064204848964de1c2b60b7f8\transformed\lifecycle-viewmodel-ktx-2.7.0\res
+com.feedshield.android.app-animation-release-2 C:\Users\dell\.gradle\caches\8.13\transforms\0b7e9e30395da4eee2e8c37796840f6e\transformed\animation-release\res
+com.feedshield.android.app-ui-tooling-preview-release-3 C:\Users\dell\.gradle\caches\8.13\transforms\1c65a94548d364f946d49e5edfc28235\transformed\ui-tooling-preview-release\res
+com.feedshield.android.app-ui-graphics-release-4 C:\Users\dell\.gradle\caches\8.13\transforms\22c8255982f0bb4bb8fb9bc4b9716df3\transformed\ui-graphics-release\res
+com.feedshield.android.app-activity-ktx-1.8.2-5 C:\Users\dell\.gradle\caches\8.13\transforms\25bfa88a1b919c75d0d376605d04ac6d\transformed\activity-ktx-1.8.2\res
+com.feedshield.android.app-core-runtime-2.2.0-6 C:\Users\dell\.gradle\caches\8.13\transforms\3313201dbbf2ed137e33fa4894cb570f\transformed\core-runtime-2.2.0\res
+com.feedshield.android.app-profileinstaller-1.3.0-7 C:\Users\dell\.gradle\caches\8.13\transforms\3c815b705a71df55c7eb5da64a464a4d\transformed\profileinstaller-1.3.0\res
+com.feedshield.android.app-emoji2-1.3.0-8 C:\Users\dell\.gradle\caches\8.13\transforms\3ef58aeea647d92bac7cefaac40b034a\transformed\emoji2-1.3.0\res
+com.feedshield.android.app-lifecycle-runtime-ktx-2.7.0-9 C:\Users\dell\.gradle\caches\8.13\transforms\455a480e98c422b8937a2aea127c4fd2\transformed\lifecycle-runtime-ktx-2.7.0\res
+com.feedshield.android.app-customview-poolingcontainer-1.0.0-10 C:\Users\dell\.gradle\caches\8.13\transforms\4d04e2e888e278e8e36b90b7e60e00b9\transformed\customview-poolingcontainer-1.0.0\res
+com.feedshield.android.app-lifecycle-viewmodel-compose-2.7.0-11 C:\Users\dell\.gradle\caches\8.13\transforms\4d1d98d0649ed5dcafd8d52d87d73ec4\transformed\lifecycle-viewmodel-compose-2.7.0\res
+com.feedshield.android.app-foundation-layout-release-12 C:\Users\dell\.gradle\caches\8.13\transforms\4db10bb39f392f9a4bd239f867aaeddf\transformed\foundation-layout-release\res
+com.feedshield.android.app-ui-unit-release-13 C:\Users\dell\.gradle\caches\8.13\transforms\5db1364597484b2f5c5b31fac3c6e6b7\transformed\ui-unit-release\res
+com.feedshield.android.app-animation-core-release-14 C:\Users\dell\.gradle\caches\8.13\transforms\6a93b63c4a0bb89267e96226ac335696\transformed\animation-core-release\res
+com.feedshield.android.app-lifecycle-runtime-2.7.0-15 C:\Users\dell\.gradle\caches\8.13\transforms\6ce2ebfcd7648a2550ab232295997428\transformed\lifecycle-runtime-2.7.0\res
+com.feedshield.android.app-runtime-saveable-release-16 C:\Users\dell\.gradle\caches\8.13\transforms\73697be5511d5e7f161c74e72e87a251\transformed\runtime-saveable-release\res
+com.feedshield.android.app-material-icons-extended-release-17 C:\Users\dell\.gradle\caches\8.13\transforms\741a94a417011cb32c44dc28fdf03501\transformed\material-icons-extended-release\res
+com.feedshield.android.app-lifecycle-process-2.7.0-18 C:\Users\dell\.gradle\caches\8.13\transforms\7ba20be52abbc14679f85fe65314b2a1\transformed\lifecycle-process-2.7.0\res
+com.feedshield.android.app-savedstate-ktx-1.2.1-19 C:\Users\dell\.gradle\caches\8.13\transforms\82581b42e1a60508c5b621bb4e00f03b\transformed\savedstate-ktx-1.2.1\res
+com.feedshield.android.app-ui-text-release-20 C:\Users\dell\.gradle\caches\8.13\transforms\84f1122886939539e6661121c4fd0f24\transformed\ui-text-release\res
+com.feedshield.android.app-lifecycle-viewmodel-savedstate-2.7.0-21 C:\Users\dell\.gradle\caches\8.13\transforms\85aeca2e09ecbc6437f53027cec89788\transformed\lifecycle-viewmodel-savedstate-2.7.0\res
+com.feedshield.android.app-ui-geometry-release-22 C:\Users\dell\.gradle\caches\8.13\transforms\9a2314de06faed83b5d6c80bf817f01f\transformed\ui-geometry-release\res
+com.feedshield.android.app-material-icons-core-release-23 C:\Users\dell\.gradle\caches\8.13\transforms\a9ac3082ed1c160f506aedf3351e58a1\transformed\material-icons-core-release\res
+com.feedshield.android.app-annotation-experimental-1.4.0-24 C:\Users\dell\.gradle\caches\8.13\transforms\acef54cab06f41b843b48ec05933f1d6\transformed\annotation-experimental-1.4.0\res
+com.feedshield.android.app-core-1.12.0-25 C:\Users\dell\.gradle\caches\8.13\transforms\afab6daebf6a93b37437af1d68283409\transformed\core-1.12.0\res
+com.feedshield.android.app-lifecycle-livedata-core-2.7.0-26 C:\Users\dell\.gradle\caches\8.13\transforms\b05cc357819e9ddb9081e8a9ba25d17a\transformed\lifecycle-livedata-core-2.7.0\res
+com.feedshield.android.app-savedstate-1.2.1-27 C:\Users\dell\.gradle\caches\8.13\transforms\baf97260fb1a49254595317377151e4a\transformed\savedstate-1.2.1\res
+com.feedshield.android.app-material3-release-28 C:\Users\dell\.gradle\caches\8.13\transforms\bde1bdd304dc0e25b9ac4035e79ee4f9\transformed\material3-release\res
+com.feedshield.android.app-lifecycle-viewmodel-2.7.0-29 C:\Users\dell\.gradle\caches\8.13\transforms\c0ae76067f1f46183939e21ee5b6bff9\transformed\lifecycle-viewmodel-2.7.0\res
+com.feedshield.android.app-material-ripple-release-30 C:\Users\dell\.gradle\caches\8.13\transforms\c332584f145ec2783c177f3387b9db9c\transformed\material-ripple-release\res
+com.feedshield.android.app-startup-runtime-1.1.1-31 C:\Users\dell\.gradle\caches\8.13\transforms\ce202fdf528274d84957db6fcb57ea39\transformed\startup-runtime-1.1.1\res
+com.feedshield.android.app-runtime-release-32 C:\Users\dell\.gradle\caches\8.13\transforms\d91472e1733657069201dd35e91b1a14\transformed\runtime-release\res
+com.feedshield.android.app-ui-util-release-33 C:\Users\dell\.gradle\caches\8.13\transforms\eac8e9694b44bba977a2d283383a00b8\transformed\ui-util-release\res
+com.feedshield.android.app-foundation-release-34 C:\Users\dell\.gradle\caches\8.13\transforms\ee057f66e0859316fc0952a9a969ac9d\transformed\foundation-release\res
+com.feedshield.android.app-activity-compose-1.8.2-35 C:\Users\dell\.gradle\caches\8.13\transforms\ee37758f63f86b3df110dc647cb995d0\transformed\activity-compose-1.8.2\res
+com.feedshield.android.app-ui-release-36 C:\Users\dell\.gradle\caches\8.13\transforms\f946ebca396e6c21d2befa32e96bb4cf\transformed\ui-release\res
+com.feedshield.android.app-core-ktx-1.12.0-37 C:\Users\dell\.gradle\caches\8.13\transforms\fc5117cee9bcd69d60c601d62c5f29ed\transformed\core-ktx-1.12.0\res
+com.feedshield.android.app-resValues-38 D:\scroll stopper\app\build\generated\res\resValues\debug
+com.feedshield.android.app-packageDebugResources-39 D:\scroll stopper\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.feedshield.android.app-packageDebugResources-40 D:\scroll stopper\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.feedshield.android.app-debug-41 D:\scroll stopper\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.feedshield.android.app-debug-42 D:\scroll stopper\app\src\debug\res
+com.feedshield.android.app-main-43 D:\scroll stopper\app\src\main\res

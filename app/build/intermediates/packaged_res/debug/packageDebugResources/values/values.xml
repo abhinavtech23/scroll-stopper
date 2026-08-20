@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="shield_accent">#10B981</color>
+    <color name="shield_background">#0B0F19</color>
+    <color name="shield_primary">#2563EB</color>
+    <color name="shield_primary_dark">#1D4ED8</color>
+    <color name="shield_surface">#161E2E</color>
+    <color name="shield_surface_variant">#232F45</color>
+    <string name="accessibility_service_description">Scroll Stopper detects short-form video UI layouts (Instagram Reels &amp; YouTube Shorts) to prevent doom-scrolling while keeping your standard feeds and direct messages accessible.</string>
+    <string name="accessibility_service_label">Scroll Stopper Protection Engine</string>
+    <string name="app_name">Scroll Stopper</string>
+    <string name="btn_dismiss">Dismiss</string>
+    <string name="btn_enable_service">Enable in Accessibility Settings</string>
+    <string name="btn_service_active">Shield Active &amp; Protecting</string>
+    <string name="btn_snooze_15m">Snooze (15 Mins)</string>
+    <string name="how_it_works_1">Targeted UI inspection: Recognizes Reels and Shorts view containers in real-time.</string>
+    <string name="how_it_works_2">DM Exception: Watch single Reels shared in chat, but prevents the endless scroll.</string>
+    <string name="how_it_works_3">Zero-Cloud Guarantee: 100% on-device processing. No network tracking.</string>
+    <string name="how_it_works_title">How Scroll Stopper Operates</string>
+    <string name="onboarding_subtitle">Intercept addictive short-form video algorithms without giving up social messaging or normal feeds.</string>
+    <string name="onboarding_title">Reclaim Your Focus</string>
+    <string name="overlay_intercepted_title">Doom-Scroll Intercepted!</string>
+    <string name="overlay_reels_scroll_message">Single Reel viewed. Further scrolling blocked to protect your time.</string>
+    <string name="overlay_shorts_message">YouTube Shorts blocked. Back to intentional watching!</string>
+    <string name="privacy_disclosure_body">Scroll Stopper uses Accessibility APIs strictly to detect short-video UI layouts on Instagram and YouTube. No personal data, messages, or text inputs are recorded, stored, or transmitted.</string>
+    <string name="privacy_disclosure_title">Privacy &amp; Accessibility Disclosure</string>
+    <string name="snooze_active_banner">Protection Snoozed for %1$d min %2$02d sec</string>
+    <string name="status_disabled">Protection Disabled - Setup Required</string>
+    <string name="status_enabled">Protection Active &amp; Running</string>
+    <style name="Theme.FeedShield" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/shield_background</item>
+        <item name="android:navigationBarColor">@color/shield_background</item>
+    </style>
+</resources>

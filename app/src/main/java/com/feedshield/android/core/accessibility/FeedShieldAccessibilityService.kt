@@ -7,46 +7,58 @@ import com.feedshield.android.core.accessibility.detector.ShortVideoDetector
 import com.feedshield.android.core.accessibility.detector.YouTubeShortsDetector
 import com.feedshield.android.core.accessibility.interceptor.DefaultShortVideoInterceptor
 import com.feedshield.android.core.accessibility.interceptor.ShortVideoInterceptor
+import com.feedshield.android.core.accessibility.overlay.ScrollStopperOverlayManager
 import com.feedshield.android.core.util.Logger
+import com.feedshield.android.data.repository.SettingsRepository
 
 /**
- * Core Accessibility Service Engine for FeedShield.
+ * Ultra-responsive, lag-free Accessibility Service Engine for Scroll Stopper.
  *
- * Responsibilities:
- * - Efficiently processes accessibility events from target apps (Instagram & YouTube).
- * - Debounces rapid scroll & content updates to preserve battery and maintain high performance.
- * - Delegates inspection to registered [ShortVideoDetector] strategies.
- * - Dispatches detection results to [ShortVideoInterceptor] implementations.
- * - Strictly operates 100% on-device with zero data retention or telemetry.
+ * Performance Optimizations:
+ * - Early event rejection to avoid tree traversal on standard text/tap/animation events.
+ * - Dynamic debouncing: Scroll events are evaluated immediately; content updates are throttled.
+ * - Zero background memory leaks or IPC blocking.
  */
 class FeedShieldAccessibilityService : AccessibilityService() {
 
     companion object {
-        private const val TAG = "FeedShield.AccessibilityService"
-        private const val DEBOUNCE_INTERVAL_MS = 150L
+        private const val TAG = "ScrollStopper.Service"
+        private const val CONTENT_CHANGE_DEBOUNCE_MS = 150L
 
         @Volatile
         var isServiceRunning: Boolean = false
             private set
     }
 
+    private val settingsRepository: SettingsRepository by lazy {
+        SettingsRepository(applicationContext)
+    }
+
+    private val overlayManager: ScrollStopperOverlayManager by lazy {
+        ScrollStopperOverlayManager(this, settingsRepository)
+    }
+
     private val detectors: List<ShortVideoDetector> by lazy {
         listOf(
-            InstagramReelsDetector(),
-            YouTubeShortsDetector()
+            InstagramReelsDetector(settingsRepository),
+            YouTubeShortsDetector(settingsRepository)
         )
     }
 
     private val interceptor: ShortVideoInterceptor by lazy {
-        DefaultShortVideoInterceptor(autoBackActionEnabled = false)
+        DefaultShortVideoInterceptor(
+            settingsRepository = settingsRepository,
+            overlayManager = overlayManager,
+            autoBackActionEnabled = true
+        )
     }
 
-    private var lastProcessedTimestamp: Long = 0L
+    private var lastContentChangeTimestamp: Long = 0L
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         isServiceRunning = true
-        Logger.i(TAG, "🛡️ FeedShield Accessibility Service connected successfully.")
+        Logger.i(TAG, "🛡️ Scroll Stopper service connected and optimized for performance.")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -54,37 +66,50 @@ class FeedShieldAccessibilityService : AccessibilityService() {
 
         val packageName = event.packageName?.toString() ?: return
 
-        // Filter out non-monitored packages early
+        // Filter out non-target apps immediately
         val detector = detectors.firstOrNull { it.targetPackage == packageName } ?: return
 
-        // Throttle / debounce high-frequency scroll and layout events
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastProcessedTimestamp < DEBOUNCE_INTERVAL_MS) {
+        // Skip if user snoozed protection
+        if (settingsRepository.isSnoozed()) {
             return
         }
-        lastProcessedTimestamp = currentTime
+
+        val eventType = event.eventType
+
+        // Throttle minor content changes to prevent freezing during like animations or comments
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+            val now = System.currentTimeMillis()
+            if (now - lastContentChangeTimestamp < CONTENT_CHANGE_DEBOUNCE_MS) {
+                return
+            }
+            lastContentChangeTimestamp = now
+        }
 
         try {
-            val rootNode = rootInActiveWindow ?: return
+            val rootNode = rootInActiveWindow
 
-            // Run detection strategy on active view hierarchy
+            // Run detection strategy
             val result = detector.detect(rootNode, event)
             if (result != null) {
-                Logger.i(TAG, "Intercepted short video layout: ${result.featureType} (${result.matchedContainerId})")
+                Logger.i(
+                    TAG,
+                    "🎯 Short video intercepted: ${result.featureType} - Reason: ${result.reason}"
+                )
                 interceptor.onShortVideoDetected(this, result)
             }
         } catch (e: Exception) {
-            Logger.e(TAG, "Exception during accessibility event handling for $packageName: ${e.message}", e)
+            Logger.e(TAG, "Error processing event for $packageName: ${e.message}", e)
         }
     }
 
     override fun onInterrupt() {
-        Logger.w(TAG, "FeedShield Accessibility Service interrupted.")
+        Logger.w(TAG, "Scroll Stopper service interrupted.")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         isServiceRunning = false
-        Logger.i(TAG, "FeedShield Accessibility Service destroyed.")
+        overlayManager.destroy()
+        Logger.i(TAG, "Scroll Stopper service destroyed.")
     }
 }

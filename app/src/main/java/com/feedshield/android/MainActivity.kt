@@ -4,12 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import com.feedshield.android.presentation.onboarding.OnboardingScreen
+import com.feedshield.android.presentation.main.MainNavigationScreen
 import com.feedshield.android.presentation.onboarding.OnboardingViewModel
 import com.feedshield.android.presentation.theme.FeedShieldTheme
 
 /**
- * Main Activity serving as the entry point and onboarding host for FeedShield.
+ * Main Activity hosting the Scroll Stopper Dashboard & Multi-Tab Interface.
  */
 class MainActivity : ComponentActivity() {
 
@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             FeedShieldTheme {
-                OnboardingScreen(viewModel = onboardingViewModel)
+                MainNavigationScreen(viewModel = onboardingViewModel)
             }
         }
     }

@@ -133,19 +133,62 @@ fun OnboardingScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = stringResource(R.string.onboarding_title),
+                    text = "Scroll Stopper",
                     style = MaterialTheme.typography.headlineLarge,
                     color = TextPrimary,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
                     text = stringResource(R.string.onboarding_subtitle),
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextSecondary
                 )
+            }
+
+            // Snooze Active Banner (if snoozed)
+            if (uiState.isSnoozed) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = ShieldAmberWarning.copy(alpha = 0.15f)),
+                    border = BorderStroke(1.dp, ShieldAmberWarning)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        val mins = uiState.remainingSnoozeSeconds / 60
+                        val secs = uiState.remainingSnoozeSeconds % 60
+                        Column {
+                            Text(
+                                text = "⏸️ Protection Paused",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = ShieldAmberWarning,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Resumes in ${mins}m ${String.format("%02d", secs)}s",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextPrimary
+                            )
+                        }
+                        TextButton(
+                            onClick = { viewModel.toggleSnooze15Minutes() }
+                        ) {
+                            Text(
+                                text = "Resume",
+                                color = ShieldCyanAccent,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
             }
 
             // Live Service Status Banner
@@ -157,7 +200,7 @@ fun OnboardingScreen(
                 onAcknowledgedChanged = { viewModel.onDisclosureAcknowledgedChanged(it) }
             )
 
-            // Protected Apps Configuration Card
+            // Protection Controls & Toggles
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -169,17 +212,40 @@ fun OnboardingScreen(
                         .fillMaxWidth()
                         .padding(18.dp)
                 ) {
-                    Text(
-                        text = "Target Platforms",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = TextPrimary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = "Short videos are intercepted while standard feeds remain functional.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextMuted
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Interception Controls",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextPrimary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        // Snooze quick action
+                        FilledTonalButton(
+                            onClick = { viewModel.toggleSnooze15Minutes() },
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = if (uiState.isSnoozed) ShieldAmberWarning.copy(alpha = 0.2f) else DarkSurfaceVariant
+                            ),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (uiState.isSnoozed) Icons.Default.PlayArrow else Icons.Default.Timer,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = if (uiState.isSnoozed) ShieldAmberWarning else ShieldCyanAccent
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (uiState.isSnoozed) "Resume" else "Snooze 15m",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (uiState.isSnoozed) ShieldAmberWarning else TextPrimary
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -189,9 +255,9 @@ fun OnboardingScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Instagram Reels",
+                                text = "Instagram Reels Interceptor",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = TextPrimary,
                                 fontWeight = FontWeight.Medium
@@ -212,9 +278,49 @@ fun OnboardingScreen(
                         )
                     }
 
+                    // Single DM Reel Option (Nested under Instagram)
+                    if (uiState.isInstagramEnabled) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = DarkSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Allow Single DM Reels",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = TextPrimary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = "Watch reels shared in chat; blocks vertical swipe-scrolls",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextMuted
+                                    )
+                                }
+                                Checkbox(
+                                    checked = uiState.isAllowSingleDmReels,
+                                    onCheckedChange = { viewModel.onToggleAllowSingleDmReels(it) },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = ShieldCyanAccent,
+                                        checkmarkColor = DarkBackground
+                                    )
+                                )
+                            }
+                        }
+                    }
+
                     Divider(
                         color = DarkBorder.copy(alpha = 0.5f),
-                        modifier = Modifier.padding(vertical = 12.dp)
+                        modifier = Modifier.padding(vertical = 14.dp)
                     )
 
                     // YouTube Item
@@ -223,9 +329,9 @@ fun OnboardingScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "YouTube Shorts",
+                                text = "YouTube Shorts Interceptor",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = TextPrimary,
                                 fontWeight = FontWeight.Medium
@@ -239,6 +345,40 @@ fun OnboardingScreen(
                         Switch(
                             checked = uiState.isYouTubeEnabled,
                             onCheckedChange = { viewModel.onToggleYouTube(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = ShieldBluePrimary
+                            )
+                        )
+                    }
+
+                    Divider(
+                        color = DarkBorder.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 14.dp)
+                    )
+
+                    // Overlay HUD Notice
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Show HUD Notice on Intercept",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = TextPrimary,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Displays floating 'Scroll Intercepted' card with quick snooze",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextMuted
+                            )
+                        }
+                        Switch(
+                            checked = uiState.isOverlayNoticeEnabled,
+                            onCheckedChange = { viewModel.onToggleOverlayNotice(it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
                                 checkedTrackColor = ShieldBluePrimary
