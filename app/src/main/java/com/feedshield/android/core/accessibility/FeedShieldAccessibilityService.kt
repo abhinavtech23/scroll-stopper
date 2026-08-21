@@ -10,6 +10,7 @@ import com.feedshield.android.core.accessibility.interceptor.ShortVideoIntercept
 import com.feedshield.android.core.accessibility.overlay.ScrollStopperOverlayManager
 import com.feedshield.android.core.util.Logger
 import com.feedshield.android.data.repository.SettingsRepository
+import com.feedshield.android.data.repository.StatsRepository
 
 /**
  * Ultra-responsive, lag-free Accessibility Service Engine for Scroll Stopper.
@@ -18,6 +19,7 @@ import com.feedshield.android.data.repository.SettingsRepository
  * - Early event rejection to avoid tree traversal on standard text/tap/animation events.
  * - Dynamic debouncing: Scroll events are evaluated immediately; content updates are throttled.
  * - Zero background memory leaks or IPC blocking.
+ * - Local gamified wellbeing statistics tracking.
  */
 class FeedShieldAccessibilityService : AccessibilityService() {
 
@@ -34,8 +36,12 @@ class FeedShieldAccessibilityService : AccessibilityService() {
         SettingsRepository(applicationContext)
     }
 
+    private val statsRepository: StatsRepository by lazy {
+        StatsRepository(applicationContext)
+    }
+
     private val overlayManager: ScrollStopperOverlayManager by lazy {
-        ScrollStopperOverlayManager(this, settingsRepository)
+        ScrollStopperOverlayManager(this, settingsRepository, statsRepository)
     }
 
     private val detectors: List<ShortVideoDetector> by lazy {
@@ -48,6 +54,7 @@ class FeedShieldAccessibilityService : AccessibilityService() {
     private val interceptor: ShortVideoInterceptor by lazy {
         DefaultShortVideoInterceptor(
             settingsRepository = settingsRepository,
+            statsRepository = statsRepository,
             overlayManager = overlayManager,
             autoBackActionEnabled = true
         )
@@ -88,7 +95,7 @@ class FeedShieldAccessibilityService : AccessibilityService() {
         try {
             val rootNode = rootInActiveWindow
 
-            // Run detection strategy
+            // Run detection strategy with fault-tolerant boundary
             val result = detector.detect(rootNode, event)
             if (result != null) {
                 Logger.i(

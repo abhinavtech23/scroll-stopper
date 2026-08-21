@@ -8,7 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.feedshield.android.R
+import com.feedshield.android.data.repository.StatsRepository
 import com.feedshield.android.presentation.onboarding.OnboardingViewModel
 import com.feedshield.android.presentation.theme.*
 
@@ -27,6 +28,8 @@ fun PrivacyScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val statsRepository = remember { StatsRepository(context) }
+    var showResetDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -37,19 +40,19 @@ fun PrivacyScreen(
     ) {
         Column {
             Text(
-                text = "Privacy & Setup",
+                text = "Privacy & Data Safety",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
             Text(
-                text = "100% on-device transparency and permissions",
+                text = "100% on-device transparency and Google Play compliance",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary
             )
         }
 
-        // Quick Setup Card
+        // Quick Setup Guide Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -104,7 +107,7 @@ fun PrivacyScreen(
             }
         }
 
-        // Mandatory Privacy Disclosure Card
+        // Google Play Data Safety & Accessibility Policy Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -142,28 +145,67 @@ fun PrivacyScreen(
                 )
 
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(14.dp),
                     color = DarkSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "🛡️ Privacy Guarantees:",
+                            text = "🛡️ Google Play Data Safety Guarantees:",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = ShieldGreenActive
                         )
                         Text(
-                            text = "• No Internet Access required or used.\n" +
-                                    "• Your messages, chats, and comments are never read or stored.\n" +
-                                    "• Operates exclusively by detecting full-screen video layout containers.",
+                            text = "• Zero Data Collected: No user identifiers, device IDs, or telemetry.\n" +
+                                    "• Zero Data Shared: No network calls or third-party SDKs.\n" +
+                                    "• Accessibility Use: Strictly limited to inspecting short-video container resource IDs on Instagram & YouTube.",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextPrimary
                         )
                     }
+                }
+            }
+        }
+
+        // Local Data Management
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = DarkSurface),
+            border = BorderStroke(1.dp, DarkBorder)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Local Storage & Analytics",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+
+                Text(
+                    text = "All your interception counts and streaks are stored 100% locally on your phone's storage. You can wipe your stats at any time.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+
+                OutlinedButton(
+                    onClick = { showResetDialog = true },
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFF5252).copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF5252))
+                ) {
+                    Icon(Icons.Default.DeleteOutline, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Clear All Local Analytics")
                 }
             }
         }
@@ -174,15 +216,42 @@ fun PrivacyScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Scroll Stopper v1.1.0 • Open Source",
+                text = "Scroll Stopper v1.2.0 • Production Ready",
                 style = MaterialTheme.typography.labelMedium,
                 color = TextMuted
             )
             Text(
-                text = "Designed for intentional digital wellbeing",
+                text = "Open-Source Digital Wellbeing Engine",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextMuted
             )
         }
+    }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = { Text("Clear All Analytics?", fontWeight = FontWeight.Bold) },
+            text = { Text("This will reset your interception counts and streaks back to zero. This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        statsRepository.resetAllStats()
+                        showResetDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))
+                ) {
+                    Text("Reset Stats")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetDialog = false }) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            },
+            containerColor = DarkSurface,
+            titleContentColor = TextPrimary,
+            textContentColor = TextSecondary
+        )
     }
 }

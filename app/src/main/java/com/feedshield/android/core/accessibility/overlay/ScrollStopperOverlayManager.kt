@@ -20,19 +20,21 @@ import com.feedshield.android.core.accessibility.detector.DetectionResult
 import com.feedshield.android.core.accessibility.detector.InterceptionReason
 import com.feedshield.android.core.util.Logger
 import com.feedshield.android.data.repository.SettingsRepository
+import com.feedshield.android.data.repository.StatsRepository
 
 /**
- * Manages the floating, on-device native overlay HUD displayed upon short-video interception.
- * Uses native Accessibility Overlay window capabilities (`TYPE_ACCESSIBILITY_OVERLAY`).
+ * Manages the floating on-device native overlay HUD displayed upon short-video interception.
+ * Features positive reinforcement feedback ("+3 mins saved! Great job staying focused").
  */
 class ScrollStopperOverlayManager(
     private val service: AccessibilityService,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val statsRepository: StatsRepository? = null
 ) {
 
     companion object {
         private const val TAG = "ScrollStopper.Overlay"
-        private const val AUTO_DISMISS_DELAY_MS = 3500L
+        private const val AUTO_DISMISS_DELAY_MS = 3800L
     }
 
     private val windowManager: WindowManager =
@@ -43,7 +45,7 @@ class ScrollStopperOverlayManager(
     private var dismissRunnable: Runnable? = null
 
     /**
-     * Displays a non-intrusive, beautiful interception notice overlay.
+     * Displays a positive reinforcement interception notice overlay.
      */
     fun showInterceptionNotice(result: DetectionResult) {
         mainHandler.post {
@@ -61,11 +63,11 @@ class ScrollStopperOverlayManager(
                     PixelFormat.TRANSLUCENT
                 ).apply {
                     gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                    y = 100 // Margin from bottom in pixels
+                    y = 120 // Margin from bottom in pixels
                 }
 
                 overlayView.alpha = 0f
-                overlayView.translationY = 50f
+                overlayView.translationY = 60f
                 windowManager.addView(overlayView, layoutParams)
                 currentOverlayView = overlayView
 
@@ -73,7 +75,7 @@ class ScrollStopperOverlayManager(
                 overlayView.animate()
                     .alpha(1f)
                     .translationY(0f)
-                    .setDuration(250)
+                    .setDuration(280)
                     .setInterpolator(DecelerateInterpolator())
                     .start()
 
@@ -94,56 +96,84 @@ class ScrollStopperOverlayManager(
         val context = service
         val dp = context.resources.displayMetrics.density
 
+        val todayStats = statsRepository?.getTodayStats()
+        val todayMinutes = todayStats?.minutesSaved ?: 3
+
         // Root container with card background
         val rootLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            val padding = (16 * dp).toInt()
+            val padding = (18 * dp).toInt()
             setPadding(padding, padding, padding, padding)
 
             val shape = GradientDrawable().apply {
                 setColor(Color.parseColor("#161E2E"))
                 cornerRadius = 20 * dp
-                setStroke((1.5f * dp).toInt(), Color.parseColor("#3B82F6"))
+                setStroke((1.5f * dp).toInt(), Color.parseColor("#10B981")) // Positive Green Accent
             }
             background = shape
             layoutParams = LinearLayout.LayoutParams(
-                (340 * dp).toInt(),
+                (350 * dp).toInt(),
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
                 gravity = Gravity.CENTER_HORIZONTAL
             }
         }
 
-        // Header Row (Icon + Title)
+        // Header Row (Positive Reinforcement Badge)
         val headerLayout = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
 
         val titleView = TextView(context).apply {
-            text = "🛑 Scroll Stopper"
-            textSize = 16f
+            text = "🛡️ Focus Shield Intercepted"
+            textSize = 15f
             setTextColor(Color.parseColor("#F8FAFC"))
             typeface = android.graphics.Typeface.DEFAULT_BOLD
         }
         headerLayout.addView(titleView)
         rootLayout.addView(headerLayout)
 
+        // Positive Reinforcement Highlight
+        val positivePill = TextView(context).apply {
+            text = "🎉 +3 mins saved! (~${todayMinutes}m saved today)"
+            textSize = 12f
+            setTextColor(Color.parseColor("#10B981")) // Green
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            val pillShape = GradientDrawable().apply {
+                setColor(Color.parseColor("#064E3B"))
+                cornerRadius = 8 * dp
+            }
+            background = pillShape
+            val hp = (8 * dp).toInt()
+            val vp = (4 * dp).toInt()
+            setPadding(hp, vp, hp, vp)
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = (6 * dp).toInt()
+                bottomMargin = (4 * dp).toInt()
+            }
+            layoutParams = params
+        }
+        rootLayout.addView(positivePill)
+
         // Description Message
         val messageText = when (result.reason) {
             InterceptionReason.INSTAGRAM_REELS_SWIPE_PREVENTED ->
-                context.getString(R.string.overlay_reels_scroll_message)
+                "Single Reel viewed. Further scrolling blocked to keep your focus sharp!"
             InterceptionReason.INSTAGRAM_REELS_IMMEDIATE ->
                 "Instagram Reels blocked. DMs and normal feeds are still active!"
             InterceptionReason.YOUTUBE_SHORTS ->
-                context.getString(R.string.overlay_shorts_message)
+                "YouTube Shorts blocked. Back to intentional watching!"
         }
 
         val descView = TextView(context).apply {
             text = messageText
             textSize = 13f
             setTextColor(Color.parseColor("#94A3B8"))
-            setPadding(0, (6 * dp).toInt(), 0, (12 * dp).toInt())
+            setPadding(0, (4 * dp).toInt(), 0, (12 * dp).toInt())
         }
         rootLayout.addView(descView)
 

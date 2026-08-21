@@ -5,12 +5,15 @@ import com.feedshield.android.core.accessibility.detector.DetectionResult
 import com.feedshield.android.core.accessibility.overlay.ScrollStopperOverlayManager
 import com.feedshield.android.core.util.Logger
 import com.feedshield.android.data.repository.SettingsRepository
+import com.feedshield.android.data.repository.StatsRepository
 
 /**
- * Production-ready interceptor that handles back actions, overlay notices, and snooze checks.
+ * Production-ready interceptor that handles back actions, overlay notices, snooze checks,
+ * and records gamification wellbeing statistics.
  */
 class DefaultShortVideoInterceptor(
     private val settingsRepository: SettingsRepository,
+    private val statsRepository: StatsRepository? = null,
     private val overlayManager: ScrollStopperOverlayManager? = null,
     private val autoBackActionEnabled: Boolean = true
 ) : ShortVideoInterceptor {
@@ -30,12 +33,19 @@ class DefaultShortVideoInterceptor(
             return
         }
 
-        // Throttle back actions to avoid repeated rapid presses
+        // Throttle back actions to avoid rapid double-taps
         val now = System.currentTimeMillis()
         if (now - lastInterceptionTime < BACK_ACTION_COOLDOWN_MS) {
             return
         }
         lastInterceptionTime = now
+
+        // Record interception event in local analytics storage
+        try {
+            statsRepository?.recordInterception(result.targetPackage, result.reason)
+        } catch (e: Exception) {
+            Logger.e(TAG, "Error recording stats: ${e.message}", e)
+        }
 
         Logger.i(
             TAG,

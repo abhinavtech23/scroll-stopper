@@ -1,6 +1,5 @@
 package com.feedshield.android.presentation.dashboard
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -23,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.feedshield.android.presentation.onboarding.OnboardingUiState
+import com.feedshield.android.data.repository.StatsRepository
 import com.feedshield.android.presentation.onboarding.OnboardingViewModel
 import com.feedshield.android.presentation.theme.*
 
@@ -35,6 +34,15 @@ fun DashboardScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+
+    val statsRepository = remember { StatsRepository(context) }
+    var todayStats by remember { mutableStateOf(statsRepository.getTodayStats()) }
+    var currentStreak by remember { mutableStateOf(statsRepository.calculateCurrentStreak()) }
+
+    LaunchedEffect(uiState.isServiceActive) {
+        todayStats = statsRepository.getTodayStats()
+        currentStreak = statsRepository.calculateCurrentStreak()
+    }
 
     // Status colors and animation
     val isProtected = uiState.isServiceActive && !uiState.isSnoozed
@@ -239,6 +247,68 @@ fun DashboardScreen(
                         ) {
                             Icon(Icons.Default.Tune, contentDescription = null, tint = TextSecondary)
                         }
+                    }
+                }
+            }
+        }
+
+        // Today's Quick Stats Summary
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = DarkSurface,
+                border = BorderStroke(1.dp, DarkBorder),
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text("🛡️", fontSize = 20.sp)
+                    Column {
+                        Text(
+                            text = "${todayStats.totalBlocks} Intercepted",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "~${todayStats.minutesSaved}m saved today",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ShieldGreenActive
+                        )
+                    }
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = DarkSurface,
+                border = BorderStroke(1.dp, DarkBorder),
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text("🔥", fontSize = 20.sp)
+                    Column {
+                        Text(
+                            text = "${currentStreak} Day Streak",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = if (currentStreak > 0) "Focus streak active" else "Start today",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ShieldAmberWarning
+                        )
                     }
                 }
             }
