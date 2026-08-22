@@ -25,14 +25,14 @@ fun StatCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.3f))
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBlack),
+        border = BorderStroke(1.dp, BorderSubtle)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
@@ -41,22 +41,23 @@ fun StatCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.labelMedium,
+                    text = title.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
                     color = TextMuted,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 1.sp
                 )
                 Surface(
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(28.dp),
                     shape = RoundedCornerShape(8.dp),
-                    color = accentColor.copy(alpha = 0.15f)
+                    color = SurfaceElevated
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = accentColor,
-                            modifier = Modifier.size(18.dp)
+                            tint = TextSecondary,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -65,15 +66,15 @@ fun StatCard(
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineMedium,
-                color = TextPrimary,
+                color = PureWhite,
                 fontWeight = FontWeight.Bold,
-                fontSize = 24.sp
+                fontSize = 22.sp
             )
 
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = TextMuted
             )
         }
     }

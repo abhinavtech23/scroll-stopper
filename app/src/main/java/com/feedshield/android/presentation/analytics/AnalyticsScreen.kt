@@ -11,7 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,7 +31,6 @@ fun AnalyticsScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scrollState = rememberScrollState()
 
-    // Refresh data when screen resumes
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -45,7 +43,6 @@ fun AnalyticsScreen(
         }
     }
 
-    // Format minutes saved nicely (e.g. "1h 45m" or "45m")
     val totalMinutes = uiState.lifetimeMinutesSaved
     val formattedTimeSaved = if (totalMinutes >= 60) {
         val hours = totalMinutes / 60
@@ -62,25 +59,24 @@ fun AnalyticsScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 20.dp),
+            .padding(horizontal = 24.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Title Header
+        // Header
         Column {
             Text(
-                text = "Wellbeing & Analytics",
+                text = "Analytics",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
+                color = PureWhite
             )
             Text(
-                text = "Track your reclaimed time and focus streaks",
+                text = "Your focus and time reclaimed",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+                color = TextMuted
             )
         }
 
-        // 3 Key Wellbeing Cards
+        // 3 Stat Cards
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -90,41 +86,41 @@ fun AnalyticsScreen(
                 value = "${uiState.todayStats.totalBlocks}",
                 subtitle = "$formattedTodayTime saved",
                 icon = Icons.Default.Block,
-                accentColor = ShieldBluePrimary,
+                accentColor = PureWhite,
                 modifier = Modifier.weight(1f)
             )
 
             StatCard(
-                title = "Time Saved",
+                title = "Saved",
                 value = formattedTimeSaved,
-                subtitle = "${uiState.lifetimeBlocksCount} blocks total",
+                subtitle = "${uiState.lifetimeBlocksCount} total",
                 icon = Icons.Default.HourglassBottom,
-                accentColor = ShieldGreenActive,
+                accentColor = PureWhite,
                 modifier = Modifier.weight(1f)
             )
 
             StatCard(
                 title = "Streak",
                 value = "${uiState.currentStreakDays}d",
-                subtitle = if (uiState.currentStreakDays > 0) "🔥 Active" else "Start today",
+                subtitle = if (uiState.currentStreakDays > 0) "Active" else "Start today",
                 icon = Icons.Default.Whatshot,
-                accentColor = ShieldAmberWarning,
+                accentColor = PureWhite,
                 modifier = Modifier.weight(1f)
             )
         }
 
-        // 7-Day Activity Chart
+        // 7-Day Chart
         WeeklyBarChart(weeklyStats = uiState.weeklyStats)
 
         // Platform Breakdown
         AppBreakdownCard(weeklyStats = uiState.weeklyStats)
 
-        // Gamification Milestones Card
+        // Milestones
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkSurface),
-            border = BorderStroke(1.dp, DarkBorder)
+            colors = CardDefaults.cardColors(containerColor = CardBlack),
+            border = BorderStroke(1.dp, BorderSubtle)
         ) {
             Column(
                 modifier = Modifier
@@ -133,34 +129,31 @@ fun AnalyticsScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(
-                    text = "🏆 Focus Milestones",
+                    text = "Milestones",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = PureWhite
                 )
 
-                // Milestone 1
                 MilestoneItem(
                     title = "First Interception",
-                    description = "Take back control of your first doom-scroll session",
+                    description = "Take back control of your first session",
                     isUnlocked = uiState.lifetimeBlocksCount >= 1,
-                    icon = "🌱"
+                    icon = Icons.Default.Flag
                 )
 
-                // Milestone 2
                 MilestoneItem(
-                    title = "3-Day Focus Streak",
-                    description = "Intercept mindless scrolling for 3 consecutive days",
+                    title = "3-Day Streak",
+                    description = "Stay focused for 3 consecutive days",
                     isUnlocked = uiState.currentStreakDays >= 3,
-                    icon = "🔥"
+                    icon = Icons.Default.Whatshot
                 )
 
-                // Milestone 3
                 MilestoneItem(
-                    title = "Time Master (1+ Hour Saved)",
-                    description = "Save more than 60 minutes of your life from infinite feeds",
+                    title = "Time Master",
+                    description = "Save more than 1 hour of screen time",
                     isUnlocked = uiState.lifetimeMinutesSaved >= 60,
-                    icon = "⏳"
+                    icon = Icons.Default.Timer
                 )
             }
         }
@@ -172,42 +165,47 @@ private fun MilestoneItem(
     title: String,
     description: String,
     isUnlocked: Boolean,
-    icon: String
+    icon: androidx.compose.ui.graphics.vector.ImageVector
 ) {
-    val alpha = if (isUnlocked) 1f else 0.45f
+    val contentAlpha = if (isUnlocked) 1f else 0.35f
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = if (isUnlocked) ShieldBluePrimary.copy(alpha = 0.12f) else DarkSurfaceVariant.copy(alpha = 0.3f),
-        border = BorderStroke(1.dp, if (isUnlocked) ShieldCyanAccent.copy(alpha = 0.3f) else DarkBorder),
+        color = if (isUnlocked) SurfaceElevated else CardBlack,
+        border = BorderStroke(1.dp, if (isUnlocked) BorderMedium else BorderSubtle),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(text = icon, fontSize = 22.sp)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = TextSecondary.copy(alpha = contentAlpha),
+                modifier = Modifier.size(22.dp)
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary.copy(alpha = alpha)
+                    color = TextPrimary.copy(alpha = contentAlpha)
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextMuted.copy(alpha = alpha)
+                    color = TextMuted.copy(alpha = contentAlpha)
                 )
             }
             if (isUnlocked) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Unlocked",
-                    tint = ShieldGreenActive,
-                    modifier = Modifier.size(20.dp)
+                    tint = PureWhite,
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }

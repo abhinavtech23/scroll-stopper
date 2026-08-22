@@ -3,14 +3,15 @@ package com.feedshield.android.presentation.analytics.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.feedshield.android.data.model.DailyStats
 import com.feedshield.android.presentation.theme.*
 
@@ -29,8 +30,8 @@ fun AppBreakdownCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        border = BorderStroke(1.dp, DarkBorder)
+        colors = CardDefaults.cardColors(containerColor = CardBlack),
+        border = BorderStroke(1.dp, BorderSubtle)
     ) {
         Column(
             modifier = Modifier
@@ -39,10 +40,10 @@ fun AppBreakdownCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Interceptions by Platform",
+                text = "Platform Breakdown",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = TextPrimary
+                color = PureWhite
             )
 
             // Instagram Row
@@ -56,7 +57,12 @@ fun AppBreakdownCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("📸", fontSize = 16.sp)
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = null,
+                            tint = TextSecondary,
+                            modifier = Modifier.size(16.dp)
+                        )
                         Text(
                             text = "Instagram Reels",
                             style = MaterialTheme.typography.bodyMedium,
@@ -68,7 +74,7 @@ fun AppBreakdownCard(
                         text = "$totalIg blocks ($igPercent%)",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE1306C)
+                        color = TextSecondary
                     )
                 }
 
@@ -76,9 +82,9 @@ fun AppBreakdownCard(
                     progress = { if (totalIg + totalYt == 0) 0f else (totalIg.toFloat() / total.toFloat()) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(8.dp),
-                    color = Color(0xFFE1306C),
-                    trackColor = DarkSurfaceVariant,
+                        .height(6.dp),
+                    color = PureWhite,
+                    trackColor = SurfaceElevated,
                 )
             }
 
@@ -93,7 +99,12 @@ fun AppBreakdownCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("▶️", fontSize = 16.sp)
+                        Icon(
+                            Icons.Default.PlayCircle,
+                            contentDescription = null,
+                            tint = TextSecondary,
+                            modifier = Modifier.size(16.dp)
+                        )
                         Text(
                             text = "YouTube Shorts",
                             style = MaterialTheme.typography.bodyMedium,
@@ -105,7 +116,7 @@ fun AppBreakdownCard(
                         text = "$totalYt blocks ($ytPercent%)",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFF4444)
+                        color = TextSecondary
                     )
                 }
 
@@ -113,9 +124,9 @@ fun AppBreakdownCard(
                     progress = { if (totalIg + totalYt == 0) 0f else (totalYt.toFloat() / total.toFloat()) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(8.dp),
-                    color = Color(0xFFFF4444),
-                    trackColor = DarkSurfaceVariant,
+                        .height(6.dp),
+                    color = TextMuted,
+                    trackColor = SurfaceElevated,
                 )
             }
         }

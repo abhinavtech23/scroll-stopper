@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -53,11 +54,11 @@ fun MainNavigationScreen(
     }
 
     Scaffold(
-        containerColor = DarkBackground,
+        containerColor = RichBlack,
         bottomBar = {
             NavigationBar(
-                containerColor = DarkSurface,
-                tonalElevation = 8.dp
+                containerColor = CardBlack,
+                tonalElevation = 0.dp
             ) {
                 NavigationTab.values().forEach { tab ->
                     val isSelected = selectedTab == tab
@@ -74,9 +75,9 @@ fun MainNavigationScreen(
                             Text(text = tab.title)
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = TextPrimary,
-                            selectedTextColor = ShieldCyanAccent,
-                            indicatorColor = ShieldBluePrimary.copy(alpha = 0.35f),
+                            selectedIconColor = PureWhite,
+                            selectedTextColor = PureWhite,
+                            indicatorColor = SurfaceElevated,
                             unselectedIconColor = TextMuted,
                             unselectedTextColor = TextMuted
                         )

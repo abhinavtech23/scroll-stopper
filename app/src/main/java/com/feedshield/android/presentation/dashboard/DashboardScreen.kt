@@ -44,20 +44,19 @@ fun DashboardScreen(
         currentStreak = statsRepository.calculateCurrentStreak()
     }
 
-    // Status colors and animation
     val isProtected = uiState.isServiceActive && !uiState.isSnoozed
     val statusColor = when {
-        uiState.isSnoozed -> ShieldAmberWarning
-        uiState.isServiceActive -> ShieldGreenActive
-        else -> ShieldBluePrimary
+        uiState.isSnoozed -> WarningAmber
+        uiState.isServiceActive -> ActiveGreen
+        else -> TextMuted
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = if (isProtected) 1.05f else 1f,
+        targetValue = if (isProtected) 1.04f else 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = EaseInOutSine),
+            animation = tween(2000, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
         ),
         label = "scale"
@@ -67,10 +66,10 @@ fun DashboardScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+            .padding(horizontal = 24.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // App Title Bar
+        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -80,41 +79,40 @@ fun DashboardScreen(
                 Text(
                     text = "Scroll Stopper",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = PureWhite
                 )
                 Text(
-                    text = "Reclaim your focus & time",
+                    text = "Digital wellbeing protection",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = TextMuted
                 )
             }
 
             Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = DarkSurfaceVariant,
-                border = BorderStroke(1.dp, DarkBorder)
+                shape = RoundedCornerShape(20.dp),
+                color = Color.Transparent,
+                border = BorderStroke(1.dp, BorderMedium)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(6.dp)
                             .clip(CircleShape)
                             .background(statusColor)
                     )
                     Text(
                         text = when {
-                            uiState.isSnoozed -> "Snoozed"
-                            uiState.isServiceActive -> "Protected"
-                            else -> "Inactive"
+                            uiState.isSnoozed -> "Paused"
+                            uiState.isServiceActive -> "Active"
+                            else -> "Off"
                         },
                         style = MaterialTheme.typography.labelSmall,
-                        color = statusColor,
-                        fontWeight = FontWeight.Bold
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -124,32 +122,29 @@ fun DashboardScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkSurface),
-            border = BorderStroke(1.5.dp, statusColor.copy(alpha = 0.5f))
+            colors = CardDefaults.cardColors(containerColor = CardBlack),
+            border = BorderStroke(1.dp, BorderSubtle)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .padding(28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
-                        .scale(pulseScale)
-                        .background(
-                            brush = Brush.radialGradient(
-                                listOf(statusColor.copy(alpha = 0.25f), Color.Transparent)
-                            ),
-                            shape = CircleShape
-                        ),
+                        .size(88.dp)
+                        .scale(pulseScale),
                     contentAlignment = Alignment.Center
                 ) {
                     Surface(
-                        modifier = Modifier.size(72.dp),
+                        modifier = Modifier.size(88.dp),
                         shape = CircleShape,
-                        color = statusColor.copy(alpha = 0.15f),
-                        border = BorderStroke(2.dp, statusColor)
+                        color = if (isProtected) PureWhite.copy(alpha = 0.08f) else SurfaceElevated,
+                        border = BorderStroke(
+                            1.5.dp,
+                            if (isProtected) PureWhite.copy(alpha = 0.3f) else BorderSubtle
+                        )
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
@@ -159,23 +154,23 @@ fun DashboardScreen(
                                     else -> Icons.Default.PowerSettingsNew
                                 },
                                 contentDescription = null,
-                                tint = statusColor,
+                                tint = if (isProtected) PureWhite else TextMuted,
                                 modifier = Modifier.size(36.dp)
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
                     text = when {
                         uiState.isSnoozed -> "Protection Paused"
-                        uiState.isServiceActive -> "Doom-Scroll Shield Active"
-                        else -> "Protection Disabled"
+                        uiState.isServiceActive -> "Shield Active"
+                        else -> "Protection Off"
                     },
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
+                    color = PureWhite,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -186,17 +181,17 @@ fun DashboardScreen(
                         uiState.isSnoozed -> {
                             val mins = uiState.remainingSnoozeSeconds / 60
                             val secs = uiState.remainingSnoozeSeconds % 60
-                            "Resumes automatically in ${mins}m ${String.format("%02d", secs)}s"
+                            "Resumes in ${mins}m ${String.format("%02d", secs)}s"
                         }
-                        uiState.isServiceActive -> "Watching feeds & DMs normally while blocking endless video loops."
-                        else -> "Enable Scroll Stopper in Accessibility Settings to start protecting your time."
+                        uiState.isServiceActive -> "Blocking short-form video loops"
+                        else -> "Enable in Accessibility Settings to start"
                     },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
+                    color = TextMuted,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 if (!uiState.isServiceActive) {
                     Button(
@@ -205,37 +200,40 @@ fun DashboardScreen(
                             .fillMaxWidth()
                             .height(50.dp),
                         shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = ShieldBluePrimary)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PureWhite,
+                            contentColor = RichBlack
+                        )
                     ) {
                         Icon(Icons.Default.Settings, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Enable in Accessibility Settings", fontWeight = FontWeight.Bold)
+                        Text("Enable Protection", fontWeight = FontWeight.Bold)
                     }
                 } else {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        FilledTonalButton(
+                        OutlinedButton(
                             onClick = { viewModel.toggleSnooze15Minutes() },
                             modifier = Modifier
                                 .weight(1f)
                                 .height(46.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = if (uiState.isSnoozed) ShieldAmberWarning.copy(alpha = 0.2f) else DarkSurfaceVariant
+                            border = BorderStroke(1.dp, BorderMedium),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = if (uiState.isSnoozed) WarningAmber else TextPrimary
                             )
                         ) {
                             Icon(
                                 imageVector = if (uiState.isSnoozed) Icons.Default.PlayArrow else Icons.Default.Timer,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = if (uiState.isSnoozed) ShieldAmberWarning else ShieldCyanAccent
+                                modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (uiState.isSnoozed) "Resume Now" else "Snooze 15m",
-                                color = if (uiState.isSnoozed) ShieldAmberWarning else TextPrimary
+                                text = if (uiState.isSnoozed) "Resume" else "Snooze 15m",
+                                fontWeight = FontWeight.Medium
                             )
                         }
 
@@ -243,98 +241,102 @@ fun DashboardScreen(
                             onClick = { viewModel.openAccessibilitySettings(context) },
                             modifier = Modifier.height(46.dp),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, DarkBorder)
+                            border = BorderStroke(1.dp, BorderSubtle)
                         ) {
-                            Icon(Icons.Default.Tune, contentDescription = null, tint = TextSecondary)
+                            Icon(Icons.Default.Tune, contentDescription = null, tint = TextMuted)
                         }
                     }
                 }
             }
         }
 
-        // Today's Quick Stats Summary
+        // Quick Stats
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = DarkSurface,
-                border = BorderStroke(1.dp, DarkBorder),
+                color = CardBlack,
+                border = BorderStroke(1.dp, BorderSubtle),
                 modifier = Modifier.weight(1f)
             ) {
-                Row(
-                    modifier = Modifier.padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    Text("🛡️", fontSize = 20.sp)
-                    Column {
-                        Text(
-                            text = "${todayStats.totalBlocks} Intercepted",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Text(
-                            text = "~${todayStats.minutesSaved}m saved today",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = ShieldGreenActive
-                        )
-                    }
+                    Text(
+                        text = "INTERCEPTED",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMuted,
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "${todayStats.totalBlocks}",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = PureWhite,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "~${todayStats.minutesSaved}m saved today",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
                 }
             }
 
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = DarkSurface,
-                border = BorderStroke(1.dp, DarkBorder),
+                color = CardBlack,
+                border = BorderStroke(1.dp, BorderSubtle),
                 modifier = Modifier.weight(1f)
             ) {
-                Row(
-                    modifier = Modifier.padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    Text("🔥", fontSize = 20.sp)
-                    Column {
-                        Text(
-                            text = "${currentStreak} Day Streak",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Text(
-                            text = if (currentStreak > 0) "Focus streak active" else "Start today",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = ShieldAmberWarning
-                        )
-                    }
+                    Text(
+                        text = "STREAK",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMuted,
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "${currentStreak}d",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = PureWhite,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (currentStreak > 0) "Focus streak active" else "Start today",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
                 }
             }
         }
 
-        // Active Targets Overview Card
+        // Active Targets
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkSurface),
-            border = BorderStroke(1.dp, DarkBorder)
+            colors = CardDefaults.cardColors(containerColor = CardBlack),
+            border = BorderStroke(1.dp, BorderSubtle)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Active Protection Status",
+                    text = "Protection Targets",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
+                    fontWeight = FontWeight.Bold,
+                    color = PureWhite
                 )
 
-                // Instagram Status
+                // Instagram
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -347,10 +349,15 @@ fun DashboardScreen(
                         Surface(
                             modifier = Modifier.size(36.dp),
                             shape = RoundedCornerShape(10.dp),
-                            color = Color(0xFFE1306C).copy(alpha = 0.15f)
+                            color = SurfaceElevated
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text("📸", fontSize = 16.sp)
+                                Icon(
+                                    Icons.Default.CameraAlt,
+                                    contentDescription = null,
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
                         Column {
@@ -361,7 +368,7 @@ fun DashboardScreen(
                                 color = TextPrimary
                             )
                             Text(
-                                text = if (uiState.isAllowSingleDmReels) "1 Reel from DM allowed • Scrolls blocked" else "All Reels blocked",
+                                text = if (uiState.isAllowSingleDmReels) "DM reels allowed, scrolls blocked" else "All reels blocked",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = TextMuted
                             )
@@ -371,13 +378,13 @@ fun DashboardScreen(
                         text = if (uiState.isInstagramEnabled) "ON" else "OFF",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (uiState.isInstagramEnabled) ShieldGreenActive else TextMuted
+                        color = if (uiState.isInstagramEnabled) PureWhite else TextDim
                     )
                 }
 
-                HorizontalDivider(color = DarkBorder.copy(alpha = 0.5f))
+                HorizontalDivider(color = BorderSubtle)
 
-                // YouTube Status
+                // YouTube
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -390,10 +397,15 @@ fun DashboardScreen(
                         Surface(
                             modifier = Modifier.size(36.dp),
                             shape = RoundedCornerShape(10.dp),
-                            color = Color(0xFFFF0000).copy(alpha = 0.15f)
+                            color = SurfaceElevated
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text("▶️", fontSize = 16.sp)
+                                Icon(
+                                    Icons.Default.PlayCircle,
+                                    contentDescription = null,
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
                         Column {
@@ -404,7 +416,7 @@ fun DashboardScreen(
                                 color = TextPrimary
                             )
                             Text(
-                                text = "Shorts player blocked • Normal videos active",
+                                text = "Shorts blocked, normal videos active",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = TextMuted
                             )
@@ -414,17 +426,17 @@ fun DashboardScreen(
                         text = if (uiState.isYouTubeEnabled) "ON" else "OFF",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (uiState.isYouTubeEnabled) ShieldGreenActive else TextMuted
+                        color = if (uiState.isYouTubeEnabled) PureWhite else TextDim
                     )
                 }
             }
         }
 
-        // Zero Cloud Guarantee Badge
+        // Privacy footer
         Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = DarkSurfaceVariant.copy(alpha = 0.5f),
-            border = BorderStroke(1.dp, DarkBorder),
+            shape = RoundedCornerShape(14.dp),
+            color = Color.Transparent,
+            border = BorderStroke(1.dp, BorderSubtle),
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -435,20 +447,14 @@ fun DashboardScreen(
                 Icon(
                     imageVector = Icons.Default.Lock,
                     contentDescription = null,
-                    tint = ShieldGreenActive,
-                    modifier = Modifier.size(22.dp)
+                    tint = TextMuted,
+                    modifier = Modifier.size(18.dp)
                 )
                 Column {
                     Text(
-                        text = "100% On-Device & Private",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                    Text(
-                        text = "Zero internet permissions. Chats, messages, and accounts are never read or stored.",
+                        text = "100% on-device, zero data collection",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextMuted
+                        color = TextSecondary
                     )
                 }
             }

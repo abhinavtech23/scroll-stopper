@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,9 +29,9 @@ fun WeeklyBarChart(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        border = BorderStroke(1.dp, DarkBorder)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBlack),
+        border = BorderStroke(1.dp, BorderSubtle)
     ) {
         Column(
             modifier = Modifier
@@ -48,39 +47,40 @@ fun WeeklyBarChart(
             ) {
                 Column {
                     Text(
-                        text = "7-Day Interception Activity",
+                        text = "7-Day Activity",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        color = PureWhite
                     )
                     Text(
-                        text = "Daily blocked doom-scrolling attempts",
+                        text = "Blocked scroll attempts",
                         style = MaterialTheme.typography.bodySmall,
                         color = TextMuted
                     )
                 }
 
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = ShieldBluePrimary.copy(alpha = 0.15f)
+                    shape = RoundedCornerShape(8.dp),
+                    color = SurfaceElevated,
+                    border = BorderStroke(1.dp, BorderSubtle)
                 ) {
                     Text(
-                        text = "$totalWeeklyBlocks Total",
+                        text = "$totalWeeklyBlocks total",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = ShieldCyanAccent,
+                        color = TextSecondary,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Bar Chart Area
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp),
+                    .height(150.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
@@ -95,11 +95,11 @@ fun WeeklyBarChart(
                     )
 
                     val barColor = if (isToday) {
-                        Brush.verticalGradient(listOf(ShieldCyanAccent, ShieldGreenActive))
+                        Brush.verticalGradient(listOf(PureWhite, AccentWhite.copy(alpha = 0.7f)))
                     } else if (dayStats.totalBlocks > 0) {
-                        Brush.verticalGradient(listOf(ShieldBluePrimary, ShieldBlueDark))
+                        Brush.verticalGradient(listOf(TextMuted, TextDim))
                     } else {
-                        Brush.verticalGradient(listOf(DarkBorder, DarkBorder.copy(alpha = 0.5f)))
+                        Brush.verticalGradient(listOf(BorderSubtle, BorderSubtle.copy(alpha = 0.3f)))
                     }
 
                     Column(
@@ -109,35 +109,35 @@ fun WeeklyBarChart(
                             .weight(1f)
                             .fillMaxHeight()
                     ) {
-                        // Count label above bar
+                        // Count label
                         Text(
-                            text = if (dayStats.totalBlocks > 0) "${dayStats.totalBlocks}" else "0",
+                            text = if (dayStats.totalBlocks > 0) "${dayStats.totalBlocks}" else "",
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isToday) ShieldCyanAccent else TextMuted,
+                            color = if (isToday) PureWhite else TextMuted,
                             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 11.sp
+                            fontSize = 10.sp
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        // Vertical Bar
+                        // Bar
                         Box(
                             modifier = Modifier
-                                .width(18.dp)
+                                .width(16.dp)
                                 .fillMaxHeight(fraction = animatedRatio * 0.78f)
-                                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 4.dp, bottomEnd = 4.dp))
+                                .clip(RoundedCornerShape(4.dp))
                                 .background(barColor)
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Day label below bar
+                        // Day label
                         Text(
                             text = if (isToday) "Today" else dayStats.dayLabel,
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isToday) TextPrimary else TextMuted,
-                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
-                            fontSize = 11.sp,
+                            color = if (isToday) PureWhite else TextDim,
+                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 10.sp,
                             textAlign = TextAlign.Center
                         )
                     }
