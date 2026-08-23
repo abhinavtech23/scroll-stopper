@@ -162,7 +162,9 @@ cd scroll-stopper
 - Enable **Developer Options** on your phone (tap Build Number 7 times in Settings → About Phone)
 - Enable **USB Debugging** in Developer Options
 - Connect phone via USB cable
-- Accept the USB debugging prompt on your phone
+- Accept the USB debugging prompt on your 
+
+(soon will be avalaible on playstore for free)
 
 ### 3. Build & Run
 
