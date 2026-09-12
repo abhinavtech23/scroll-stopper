@@ -56,7 +56,7 @@ class FeedShieldAccessibilityService : AccessibilityService() {
             settingsRepository = settingsRepository,
             statsRepository = statsRepository,
             overlayManager = overlayManager,
-            autoBackActionEnabled = true
+            autoBackActionEnabled = false
         )
     }
 
@@ -75,6 +75,11 @@ class FeedShieldAccessibilityService : AccessibilityService() {
 
         // Filter out non-target apps immediately
         val detector = detectors.firstOrNull { it.targetPackage == packageName } ?: return
+
+        // Skip if user turned protection OFF via in-app toggle
+        if (!settingsRepository.isProtectionEnabled) {
+            return
+        }
 
         // Skip if user snoozed protection
         if (settingsRepository.isSnoozed()) {

@@ -4,7 +4,9 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
@@ -13,18 +15,18 @@ import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.feedshield.android.R
 import com.feedshield.android.core.accessibility.detector.DetectionResult
-import com.feedshield.android.core.accessibility.detector.InterceptionReason
 import com.feedshield.android.core.util.Logger
 import com.feedshield.android.data.repository.SettingsRepository
 import com.feedshield.android.data.repository.StatsRepository
 
 /**
- * Manages the floating on-device native overlay HUD displayed upon short-video interception.
- * Features positive reinforcement feedback ("+3 mins saved! Great job staying focused").
+ * Manages the full-screen blur & motivational focus overlay displayed upon short-video interception.
+ * Instead of jarring automatic back-navigation, blurs the reel/short video and delivers a powerful,
+ * respectful motivational intervention directly on screen.
  */
 class ScrollStopperOverlayManager(
     private val service: AccessibilityService,
@@ -34,7 +36,7 @@ class ScrollStopperOverlayManager(
 
     companion object {
         private const val TAG = "ScrollStopper.Overlay"
-        private const val AUTO_DISMISS_DELAY_MS = 3800L
+        private const val AUTO_DISMISS_DELAY_MS = 9000L
     }
 
     private val windowManager: WindowManager =
@@ -45,37 +47,47 @@ class ScrollStopperOverlayManager(
     private var dismissRunnable: Runnable? = null
 
     /**
-     * Displays a positive reinforcement interception notice overlay.
+     * Displays the full-screen blur overlay with the motivational message.
      */
     fun showInterceptionNotice(result: DetectionResult) {
         mainHandler.post {
             try {
-                removeOverlayInternal()
+                // If overlay is already active, do not flicker or duplicate
+                if (currentOverlayView != null) {
+                    Logger.d(TAG, "Blur overlay is already displayed. Keeping current view.")
+                    return@post
+                }
 
                 val overlayView = buildOverlayView(result)
+                var flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+                }
+
                 val layoutParams = WindowManager.LayoutParams(
                     WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                    flags,
                     PixelFormat.TRANSLUCENT
                 ).apply {
-                    gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                    y = 120 // Margin from bottom in pixels
+                    gravity = Gravity.CENTER
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        blurBehindRadius = 80
+                    }
                 }
 
                 overlayView.alpha = 0f
-                overlayView.translationY = 60f
                 windowManager.addView(overlayView, layoutParams)
                 currentOverlayView = overlayView
 
-                // Smooth slide up & fade in
+                // Smooth fade in
                 overlayView.animate()
                     .alpha(1f)
-                    .translationY(0f)
-                    .setDuration(280)
+                    .setDuration(240)
                     .setInterpolator(DecelerateInterpolator())
                     .start()
 
@@ -87,7 +99,7 @@ class ScrollStopperOverlayManager(
                 mainHandler.postDelayed(autoDismiss, AUTO_DISMISS_DELAY_MS)
 
             } catch (e: Exception) {
-                Logger.e(TAG, "Failed to present overlay window: ${e.message}", e)
+                Logger.e(TAG, "Failed to present blur overlay window: ${e.message}", e)
             }
         }
     }
@@ -99,134 +111,230 @@ class ScrollStopperOverlayManager(
         val todayStats = statsRepository?.getTodayStats()
         val todayMinutes = todayStats?.minutesSaved ?: 3
 
-        // Root container with card background
-        val rootLayout = LinearLayout(context).apply {
+        // Fullscreen Root Frame: Translucent dark blur scrim (obscures the reel video)
+        val rootLayout = FrameLayout(context).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            // Heavy translucent dark frosted backdrop: 92% opacity dark glass
+            setBackgroundColor(Color.argb(235, 8, 8, 8))
+            isClickable = true
+            isFocusable = true
+        }
+
+        // Center Motivational Card
+        val cardLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            val padding = (18 * dp).toInt()
-            setPadding(padding, padding, padding, padding)
+            gravity = Gravity.CENTER_HORIZONTAL
+            val padH = (24 * dp).toInt()
+            val padV = (28 * dp).toInt()
+            setPadding(padH, padV, padH, padV)
 
-            val shape = GradientDrawable().apply {
-                setColor(Color.parseColor("#161E2E"))
-                cornerRadius = 20 * dp
-                setStroke((1.5f * dp).toInt(), Color.parseColor("#10B981")) // Positive Green Accent
+            val cardShape = GradientDrawable().apply {
+                setColor(Color.parseColor("#121212")) // Premium rich black
+                cornerRadius = 24 * dp
+                setStroke((1.5f * dp).toInt(), Color.parseColor("#2E2E2E")) // Subtle border
             }
-            background = shape
-            layoutParams = LinearLayout.LayoutParams(
-                (350 * dp).toInt(),
-                LinearLayout.LayoutParams.WRAP_CONTENT
+            background = cardShape
+
+            // Center in parent FrameLayout with margins
+            val lp = FrameLayout.LayoutParams(
+                (340 * dp).toInt(),
+                FrameLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
+                gravity = Gravity.CENTER
+                val margin = (24 * dp).toInt()
+                setMargins(margin, margin, margin, margin)
             }
+            layoutParams = lp
         }
 
-        // Header Row (Positive Reinforcement Badge)
-        val headerLayout = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val titleView = TextView(context).apply {
-            text = "🛡️ Focus Shield Intercepted"
-            textSize = 15f
-            setTextColor(Color.parseColor("#F8FAFC"))
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
-        }
-        headerLayout.addView(titleView)
-        rootLayout.addView(headerLayout)
-
-        // Positive Reinforcement Highlight
-        val positivePill = TextView(context).apply {
-            text = "🎉 +3 mins saved! (~${todayMinutes}m saved today)"
-            textSize = 12f
-            setTextColor(Color.parseColor("#10B981")) // Green
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
-            val pillShape = GradientDrawable().apply {
-                setColor(Color.parseColor("#064E3B"))
-                cornerRadius = 8 * dp
+        // 1. Tag / Badge (SCROLL STOPPER)
+        val badge = TextView(context).apply {
+            text = "SCROLL STOPPER"
+            textSize = 11f
+            setTextColor(Color.parseColor("#888888"))
+            typeface = Typeface.DEFAULT_BOLD
+            letterSpacing = 0.15f
+            val badgeShape = GradientDrawable().apply {
+                setColor(Color.parseColor("#1C1C1C"))
+                cornerRadius = 6 * dp
+                setStroke((1 * dp).toInt(), Color.parseColor("#333333"))
             }
-            background = pillShape
-            val hp = (8 * dp).toInt()
+            background = badgeShape
+            val hp = (10 * dp).toInt()
             val vp = (4 * dp).toInt()
             setPadding(hp, vp, hp, vp)
-            val params = LinearLayout.LayoutParams(
+        }
+        cardLayout.addView(badge)
+
+        // 2. Headline: "STOP SCROLLING MY BROTHER"
+        val headline = TextView(context).apply {
+            text = "STOP SCROLLING MY BROTHER"
+            textSize = 19f
+            setTextColor(Color.parseColor("#FFFFFF"))
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = (16 * dp).toInt()
+            }
+            layoutParams = lp
+        }
+        cardLayout.addView(headline)
+
+        // 3. Motivational Body
+        val bodyText = TextView(context).apply {
+            text = "YOU ARE MUCH BIGGER THAN THIS\nYOU HAVE GREAT POTENTIAL\nDONT WASTE YOU POTENTIAL"
+            textSize = 14f
+            setTextColor(Color.parseColor("#D1D5DB"))
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            setLineSpacing(0f, 1.35f)
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = (12 * dp).toInt()
+            }
+            layoutParams = lp
+        }
+        cardLayout.addView(bodyText)
+
+        // 4. Signature: "- SCROLL STOPPER TEAM"
+        val signature = TextView(context).apply {
+            text = "— SCROLL STOPPER TEAM"
+            textSize = 12f
+            setTextColor(Color.parseColor("#9CA3AF"))
+            typeface = Typeface.DEFAULT_BOLD
+            letterSpacing = 0.1f
+            gravity = Gravity.CENTER
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = (14 * dp).toInt()
+                bottomMargin = (14 * dp).toInt()
+            }
+            layoutParams = lp
+        }
+        cardLayout.addView(signature)
+
+        // 5. Stat Pill: (+3m saved • ~Xm saved today)
+        val statPill = TextView(context).apply {
+            text = "+3 mins saved • ~${todayMinutes}m saved today"
+            textSize = 11f
+            setTextColor(Color.parseColor("#888888"))
+            gravity = Gravity.CENTER
+            val pillShape = GradientDrawable().apply {
+                setColor(Color.parseColor("#181818"))
+                cornerRadius = 12 * dp
+            }
+            background = pillShape
+            val hp = (12 * dp).toInt()
+            val vp = (4 * dp).toInt()
+            setPadding(hp, vp, hp, vp)
+            val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = (6 * dp).toInt()
-                bottomMargin = (4 * dp).toInt()
+                bottomMargin = (20 * dp).toInt()
             }
-            layoutParams = params
+            layoutParams = lp
         }
-        rootLayout.addView(positivePill)
+        cardLayout.addView(statPill)
 
-        // Description Message
-        val messageText = when (result.reason) {
-            InterceptionReason.INSTAGRAM_REELS_SWIPE_PREVENTED ->
-                "Single Reel viewed. Further scrolling blocked to keep your focus sharp!"
-            InterceptionReason.INSTAGRAM_REELS_IMMEDIATE ->
-                "Instagram Reels blocked. DMs and normal feeds are still active!"
-            InterceptionReason.YOUTUBE_SHORTS ->
-                "YouTube Shorts blocked. Back to intentional watching!"
-        }
-
-        val descView = TextView(context).apply {
-            text = messageText
-            textSize = 13f
-            setTextColor(Color.parseColor("#94A3B8"))
-            setPadding(0, (4 * dp).toInt(), 0, (12 * dp).toInt())
-        }
-        rootLayout.addView(descView)
-
-        // Button Row
+        // 6. Action Buttons Row: [ GO BACK ] and [ I'LL FOCUS ]
         val buttonRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.END
+            gravity = Gravity.CENTER
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            layoutParams = lp
         }
 
-        // Snooze Button
-        val snoozeButton = Button(context).apply {
-            text = context.getString(R.string.btn_snooze_15m)
-            textSize = 12f
-            setTextColor(Color.parseColor("#06B6D4"))
+        // Button: GO BACK (leaves the reel screen manually)
+        val goBackButton = Button(context).apply {
+            text = "GO BACK"
+            textSize = 13f
+            setTextColor(Color.parseColor("#000000"))
+            typeface = Typeface.DEFAULT_BOLD
             val btnShape = GradientDrawable().apply {
-                setColor(Color.parseColor("#1E293B"))
-                cornerRadius = 10 * dp
+                setColor(Color.parseColor("#FFFFFF")) // Pure White
+                cornerRadius = 12 * dp
             }
             background = btnShape
-            setPadding((12 * dp).toInt(), (4 * dp).toInt(), (12 * dp).toInt(), (4 * dp).toInt())
+            val hp = (16 * dp).toInt()
+            val vp = (8 * dp).toInt()
+            setPadding(hp, vp, hp, vp)
+            val lp = LinearLayout.LayoutParams(0, (46 * dp).toInt(), 1f).apply {
+                rightMargin = (6 * dp).toInt()
+            }
+            layoutParams = lp
             setOnClickListener {
-                settingsRepository.snoozeForMinutes(15)
-                Logger.i(TAG, "Protection snoozed for 15 minutes via overlay.")
+                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
                 dismissOverlay()
             }
         }
-        buttonRow.addView(snoozeButton)
+        buttonRow.addView(goBackButton)
 
-        // Dismiss Button
-        val dismissButton = Button(context).apply {
-            text = context.getString(R.string.btn_dismiss)
-            textSize = 12f
-            setTextColor(Color.parseColor("#F8FAFC"))
+        // Button: I'LL FOCUS (dismisses overlay)
+        val focusButton = Button(context).apply {
+            text = "I'LL FOCUS"
+            textSize = 13f
+            setTextColor(Color.parseColor("#FFFFFF"))
+            typeface = Typeface.DEFAULT_BOLD
             val btnShape = GradientDrawable().apply {
-                setColor(Color.parseColor("#2563EB"))
-                cornerRadius = 10 * dp
+                setColor(Color.parseColor("#222222")) // Dark elevated
+                cornerRadius = 12 * dp
+                setStroke((1 * dp).toInt(), Color.parseColor("#383838"))
             }
             background = btnShape
-            setPadding((14 * dp).toInt(), (4 * dp).toInt(), (14 * dp).toInt(), (4 * dp).toInt())
-            val params = LinearLayout.LayoutParams(
+            val hp = (16 * dp).toInt()
+            val vp = (8 * dp).toInt()
+            setPadding(hp, vp, hp, vp)
+            val lp = LinearLayout.LayoutParams(0, (46 * dp).toInt(), 1f).apply {
+                leftMargin = (6 * dp).toInt()
+            }
+            layoutParams = lp
+            setOnClickListener {
+                dismissOverlay()
+            }
+        }
+        buttonRow.addView(focusButton)
+
+        cardLayout.addView(buttonRow)
+
+        // 7. Snooze link at bottom
+        val snoozeLink = TextView(context).apply {
+            text = "Snooze protection for 15 minutes"
+            textSize = 11f
+            setTextColor(Color.parseColor("#666666"))
+            gravity = Gravity.CENTER
+            val hp = (10 * dp).toInt()
+            val vp = (8 * dp).toInt()
+            setPadding(hp, vp, hp, vp)
+            val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                leftMargin = (8 * dp).toInt()
+                topMargin = (12 * dp).toInt()
             }
-            layoutParams = params
+            layoutParams = lp
             setOnClickListener {
+                settingsRepository.snoozeForMinutes(15)
+                Logger.i(TAG, "Protection snoozed for 15 minutes via blur overlay.")
                 dismissOverlay()
             }
         }
-        buttonRow.addView(dismissButton)
+        cardLayout.addView(snoozeLink)
 
-        rootLayout.addView(buttonRow)
+        rootLayout.addView(cardLayout)
         return rootLayout
     }
 
@@ -235,8 +343,7 @@ class ScrollStopperOverlayManager(
             val view = currentOverlayView ?: return@post
             view.animate()
                 .alpha(0f)
-                .translationY(40f)
-                .setDuration(200)
+                .setDuration(180)
                 .setInterpolator(AccelerateInterpolator())
                 .withEndAction {
                     removeOverlayInternal()

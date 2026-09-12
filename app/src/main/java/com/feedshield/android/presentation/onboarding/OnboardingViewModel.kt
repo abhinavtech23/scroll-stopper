@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 
 data class OnboardingUiState(
     val isServiceActive: Boolean = false,
+    val isProtectionEnabled: Boolean = true,
     val isDisclosureAcknowledged: Boolean = false,
     val isInstagramEnabled: Boolean = true,
     val isYouTubeEnabled: Boolean = true,
@@ -35,6 +36,7 @@ class OnboardingViewModel(
     private val _uiState = MutableStateFlow(
         OnboardingUiState(
             isServiceActive = checkServiceStatus(),
+            isProtectionEnabled = repository.isProtectionEnabled,
             isDisclosureAcknowledged = repository.isDisclosureAcknowledged,
             isInstagramEnabled = repository.isInstagramBlocked,
             isYouTubeEnabled = repository.isYouTubeBlocked,
@@ -67,6 +69,7 @@ class OnboardingViewModel(
         _uiState.update {
             it.copy(
                 isServiceActive = checkServiceStatus(),
+                isProtectionEnabled = repository.isProtectionEnabled,
                 isSnoozed = repository.isSnoozed(),
                 remainingSnoozeSeconds = repository.getRemainingSnoozeSeconds()
             )
@@ -107,6 +110,12 @@ class OnboardingViewModel(
             repository.snoozeForMinutes(15)
         }
         refreshServiceStatus()
+    }
+
+    fun toggleProtection() {
+        val newValue = !repository.isProtectionEnabled
+        repository.isProtectionEnabled = newValue
+        _uiState.update { it.copy(isProtectionEnabled = newValue) }
     }
 
     fun openAccessibilitySettings(context: Context) {

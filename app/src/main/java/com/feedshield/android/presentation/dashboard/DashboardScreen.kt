@@ -3,6 +3,8 @@ package com.feedshield.android.presentation.dashboard
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -39,22 +40,24 @@ fun DashboardScreen(
     var todayStats by remember { mutableStateOf(statsRepository.getTodayStats()) }
     var currentStreak by remember { mutableStateOf(statsRepository.calculateCurrentStreak()) }
 
-    LaunchedEffect(uiState.isServiceActive) {
+    LaunchedEffect(uiState.isServiceActive, uiState.isProtectionEnabled) {
         todayStats = statsRepository.getTodayStats()
         currentStreak = statsRepository.calculateCurrentStreak()
     }
 
-    val isProtected = uiState.isServiceActive && !uiState.isSnoozed
+    // Protection is truly active only when service is running AND protection is enabled AND not snoozed
+    val isFullyProtected = uiState.isServiceActive && uiState.isProtectionEnabled && !uiState.isSnoozed
     val statusColor = when {
+        !uiState.isServiceActive -> TextMuted
+        !uiState.isProtectionEnabled -> TextMuted
         uiState.isSnoozed -> WarningAmber
-        uiState.isServiceActive -> ActiveGreen
-        else -> TextMuted
+        else -> ActiveGreen
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = if (isProtected) 1.04f else 1f,
+        targetValue = if (isFullyProtected) 1.04f else 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(2000, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
@@ -106,9 +109,10 @@ fun DashboardScreen(
                     )
                     Text(
                         text = when {
+                            !uiState.isServiceActive -> "No Permission"
+                            !uiState.isProtectionEnabled -> "Off"
                             uiState.isSnoozed -> "Paused"
-                            uiState.isServiceActive -> "Active"
-                            else -> "Off"
+                            else -> "Active"
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondary,
@@ -118,7 +122,7 @@ fun DashboardScreen(
             }
         }
 
-        // Hero Status Card
+        // Hero Card with ON/OFF toggle
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -131,60 +135,86 @@ fun DashboardScreen(
                     .padding(28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Tappable shield icon — acts as ON/OFF when permission is granted
                 Box(
                     modifier = Modifier
-                        .size(88.dp)
-                        .scale(pulseScale),
+                        .size(100.dp)
+                        .scale(pulseScale)
+                        .then(
+                            if (uiState.isServiceActive) {
+                                Modifier.clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { viewModel.toggleProtection() }
+                            } else {
+                                Modifier
+                            }
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Surface(
-                        modifier = Modifier.size(88.dp),
+                        modifier = Modifier.size(100.dp),
                         shape = CircleShape,
-                        color = if (isProtected) PureWhite.copy(alpha = 0.08f) else SurfaceElevated,
+                        color = when {
+                            isFullyProtected -> PureWhite.copy(alpha = 0.10f)
+                            uiState.isServiceActive && uiState.isProtectionEnabled && uiState.isSnoozed -> WarningAmber.copy(alpha = 0.08f)
+                            else -> SurfaceElevated
+                        },
                         border = BorderStroke(
-                            1.5.dp,
-                            if (isProtected) PureWhite.copy(alpha = 0.3f) else BorderSubtle
+                            2.dp,
+                            when {
+                                isFullyProtected -> PureWhite.copy(alpha = 0.4f)
+                                uiState.isSnoozed -> WarningAmber.copy(alpha = 0.3f)
+                                else -> BorderSubtle
+                            }
                         )
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = when {
+                                    !uiState.isServiceActive -> Icons.Default.PowerSettingsNew
                                     uiState.isSnoozed -> Icons.Default.Timer
-                                    uiState.isServiceActive -> Icons.Default.Shield
+                                    uiState.isProtectionEnabled -> Icons.Default.Shield
                                     else -> Icons.Default.PowerSettingsNew
                                 },
                                 contentDescription = null,
-                                tint = if (isProtected) PureWhite else TextMuted,
-                                modifier = Modifier.size(36.dp)
+                                tint = when {
+                                    isFullyProtected -> PureWhite
+                                    uiState.isSnoozed -> WarningAmber
+                                    else -> TextMuted
+                                },
+                                modifier = Modifier.size(40.dp)
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
                 Text(
                     text = when {
+                        !uiState.isServiceActive -> "Protection Off"
+                        !uiState.isProtectionEnabled -> "Protection Off"
                         uiState.isSnoozed -> "Protection Paused"
-                        uiState.isServiceActive -> "Shield Active"
-                        else -> "Protection Off"
+                        else -> "Shield Active"
                     },
                     style = MaterialTheme.typography.titleLarge,
                     color = PureWhite,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = when {
+                        !uiState.isServiceActive -> "Enable in Accessibility Settings to start"
+                        !uiState.isProtectionEnabled -> "Tap the shield to turn on"
                         uiState.isSnoozed -> {
                             val mins = uiState.remainingSnoozeSeconds / 60
                             val secs = uiState.remainingSnoozeSeconds % 60
                             "Resumes in ${mins}m ${String.format("%02d", secs)}s"
                         }
-                        uiState.isServiceActive -> "Blocking short-form video loops"
-                        else -> "Enable in Accessibility Settings to start"
+                        else -> "Tap the shield to turn off"
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextMuted,
@@ -194,6 +224,7 @@ fun DashboardScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 if (!uiState.isServiceActive) {
+                    // First time: send to Accessibility Settings
                     Button(
                         onClick = { viewModel.openAccessibilitySettings(context) },
                         modifier = Modifier
@@ -210,40 +241,64 @@ fun DashboardScreen(
                         Text("Enable Protection", fontWeight = FontWeight.Bold)
                     }
                 } else {
+                    // Permission granted: show ON/OFF toggle + Snooze
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = { viewModel.toggleSnooze15Minutes() },
+                        // Main ON/OFF button
+                        Button(
+                            onClick = { viewModel.toggleProtection() },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(46.dp),
+                                .height(48.dp),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, BorderMedium),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = if (uiState.isSnoozed) WarningAmber else TextPrimary
-                            )
+                            colors = if (uiState.isProtectionEnabled) {
+                                ButtonDefaults.buttonColors(
+                                    containerColor = PureWhite,
+                                    contentColor = RichBlack
+                                )
+                            } else {
+                                ButtonDefaults.buttonColors(
+                                    containerColor = SurfaceElevated,
+                                    contentColor = TextPrimary
+                                )
+                            }
                         ) {
                             Icon(
-                                imageVector = if (uiState.isSnoozed) Icons.Default.PlayArrow else Icons.Default.Timer,
+                                imageVector = if (uiState.isProtectionEnabled) Icons.Default.Shield else Icons.Default.PowerSettingsNew,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (uiState.isSnoozed) "Resume" else "Snooze 15m",
-                                fontWeight = FontWeight.Medium
+                                text = if (uiState.isProtectionEnabled) "ON" else "OFF",
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
-                        OutlinedButton(
-                            onClick = { viewModel.openAccessibilitySettings(context) },
-                            modifier = Modifier.height(46.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, BorderSubtle)
-                        ) {
-                            Icon(Icons.Default.Tune, contentDescription = null, tint = TextMuted)
+                        // Snooze button (only when protection is ON)
+                        if (uiState.isProtectionEnabled) {
+                            OutlinedButton(
+                                onClick = { viewModel.toggleSnooze15Minutes() },
+                                modifier = Modifier.height(48.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, BorderMedium),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = if (uiState.isSnoozed) WarningAmber else TextPrimary
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = if (uiState.isSnoozed) Icons.Default.PlayArrow else Icons.Default.Timer,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (uiState.isSnoozed) "Resume" else "15m",
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
                 }

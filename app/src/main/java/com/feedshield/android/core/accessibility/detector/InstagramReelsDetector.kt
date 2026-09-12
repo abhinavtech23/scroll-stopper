@@ -43,7 +43,8 @@ class InstagramReelsDetector(
         val sessionId: Long = System.currentTimeMillis(),
         val startTime: Long = System.currentTimeMillis(),
         var initialReelViewed: Boolean = true,
-        var swipeDetected: Boolean = false
+        var lastSwipeInterceptTime: Long = 0L,
+        var swipeCount: Int = 0
     )
 
     private var activeSession: ReelSession? = null
@@ -112,9 +113,11 @@ class InstagramReelsDetector(
 
             // After grace period: Listen specifically for vertical swipe gestures
             if (eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED && isReelsActive) {
-                if (!currentSession.swipeDetected) {
-                    currentSession.swipeDetected = true
-                    Logger.i(TAG, "🛑 User swiped to next Reel! Intercepting scroll.")
+                val now = System.currentTimeMillis()
+                if (now - currentSession.lastSwipeInterceptTime > 2000L) {
+                    currentSession.lastSwipeInterceptTime = now
+                    currentSession.swipeCount++
+                    Logger.i(TAG, "🛑 User swiped to next Reel (#${currentSession.swipeCount})! Intercepting scroll.")
                     return DetectionResult(
                         targetPackage = targetPackage,
                         featureType = "Instagram Reels",

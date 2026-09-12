@@ -8,19 +8,22 @@ import com.feedshield.android.data.repository.SettingsRepository
 import com.feedshield.android.data.repository.StatsRepository
 
 /**
- * Production-ready interceptor that handles back actions, overlay notices, snooze checks,
- * and records gamification wellbeing statistics.
+ * Production-ready interceptor that presents the full-screen blur focus overlay,
+ * records gamification wellbeing statistics, and handles snooze checks.
+ *
+ * Automatic back navigation is disabled by default to keep the user on screen while
+ * blurring the reel and showing the motivational intervention.
  */
 class DefaultShortVideoInterceptor(
     private val settingsRepository: SettingsRepository,
     private val statsRepository: StatsRepository? = null,
     private val overlayManager: ScrollStopperOverlayManager? = null,
-    private val autoBackActionEnabled: Boolean = true
+    private val autoBackActionEnabled: Boolean = false
 ) : ShortVideoInterceptor {
 
     companion object {
         private const val TAG = "ScrollStopper.Interceptor"
-        private const val BACK_ACTION_COOLDOWN_MS = 600L
+        private const val INTERCEPTION_COOLDOWN_MS = 800L
     }
 
     private var lastInterceptionTime = 0L
@@ -33,9 +36,9 @@ class DefaultShortVideoInterceptor(
             return
         }
 
-        // Throttle back actions to avoid rapid double-taps
+        // Throttle rapid duplicate detections
         val now = System.currentTimeMillis()
-        if (now - lastInterceptionTime < BACK_ACTION_COOLDOWN_MS) {
+        if (now - lastInterceptionTime < INTERCEPTION_COOLDOWN_MS) {
             return
         }
         lastInterceptionTime = now
@@ -53,12 +56,12 @@ class DefaultShortVideoInterceptor(
                     "(Reason: ${result.reason}, Container: ${result.matchedContainerId})"
         )
 
-        // Show visual HUD notice if enabled
+        // Show visual full-screen blur motivation overlay if enabled
         if (settingsRepository.isOverlayNoticeEnabled) {
             overlayManager?.showInterceptionNotice(result)
         }
 
-        // Trigger Android Back Action to exit the short-video container
+        // Optional Android Back Action: disabled so user is NOT kicked back to the old screen
         if (autoBackActionEnabled) {
             Logger.i(TAG, "Executing GLOBAL_ACTION_BACK to exit short video container.")
             service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)

@@ -22,6 +22,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_ALLOW_SINGLE_DM_REELS = "key_allow_single_dm_reels"
         private const val KEY_SNOOZE_UNTIL_TIMESTAMP = "key_snooze_until_timestamp"
         private const val KEY_OVERLAY_NOTICE_ENABLED = "key_overlay_notice_enabled"
+        private const val KEY_PROTECTION_ENABLED = "key_protection_enabled"
 
         const val DEFAULT_SNOOZE_MINUTES = 15
     }
@@ -49,6 +50,14 @@ class SettingsRepository(context: Context) {
     var isOverlayNoticeEnabled: Boolean
         get() = prefs.getBoolean(KEY_OVERLAY_NOTICE_ENABLED, true)
         set(value) = prefs.edit().putBoolean(KEY_OVERLAY_NOTICE_ENABLED, value).apply()
+
+    /**
+     * Master ON/OFF toggle. When false, the accessibility service stays connected
+     * but all detection and interception is skipped. Defaults to true (ON).
+     */
+    var isProtectionEnabled: Boolean
+        get() = prefs.getBoolean(KEY_PROTECTION_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_PROTECTION_ENABLED, value).apply()
 
     var snoozeUntilTimestamp: Long
         get() = prefs.getLong(KEY_SNOOZE_UNTIL_TIMESTAMP, 0L)
